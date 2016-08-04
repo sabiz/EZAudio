@@ -257,6 +257,13 @@ FOUNDATION_EXPORT Float64 const EZOutputDefaultSampleRate;
 @property (nonatomic, assign) float volume;
 
 //------------------------------------------------------------------------------
+
+/**
+ Provides the current playback rate from audio player's ipod time audio unit.
+ */
+@property (nonatomic, assign) float playbackrate;
+
+//------------------------------------------------------------------------------
 #pragma mark - Core Audio Properties
 //------------------------------------------------------------------------------
 

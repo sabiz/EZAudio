@@ -35,6 +35,7 @@ NSString * const EZAudioPlayerDidChangeOutputDeviceNotification = @"EZAudioPlaye
 NSString * const EZAudioPlayerDidChangePanNotification = @"EZAudioPlayerDidChangePanNotification";
 NSString * const EZAudioPlayerDidChangePlayStateNotification = @"EZAudioPlayerDidChangePlayStateNotification";
 NSString * const EZAudioPlayerDidChangeVolumeNotification = @"EZAudioPlayerDidChangeVolumeNotification";
+NSString * const EZAudioPlayerDidChangePlaybackRateNotification = @"EZAudioPlayerDidChangePlaybackRateNotification";
 NSString * const EZAudioPlayerDidReachEndOfFileNotification = @"EZAudioPlayerDidReachEndOfFileNotification";
 NSString * const EZAudioPlayerDidSeekNotification = @"EZAudioPlayerDidSeekNotification";
 
@@ -263,6 +264,13 @@ NSString * const EZAudioPlayerDidSeekNotification = @"EZAudioPlayerDidSeekNotifi
 }
 
 //------------------------------------------------------------------------------
+
+- (float)playbackrate
+{
+    return [self.output playbackrate];
+}
+
+//------------------------------------------------------------------------------
 #pragma mark - Setters
 //------------------------------------------------------------------------------
 
@@ -319,6 +327,15 @@ NSString * const EZAudioPlayerDidSeekNotification = @"EZAudioPlayerDidSeekNotifi
                                                         object:self];
 }
 
+
+//------------------------------------------------------------------------------
+
+- (void)setPlaybackrate:(float)playbackrate
+{
+    [self.output setPlaybackrate:playbackrate];
+    [[NSNotificationCenter defaultCenter] postNotificationName:EZAudioPlayerDidChangePlaybackRateNotification
+                                                        object:self];
+}
 //------------------------------------------------------------------------------
 #pragma mark - Actions
 //------------------------------------------------------------------------------

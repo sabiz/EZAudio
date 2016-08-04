@@ -52,6 +52,7 @@ typedef struct
     EZAudioNodeInfo converterNodeInfo;
     EZAudioNodeInfo mixerNodeInfo;
     EZAudioNodeInfo outputNodeInfo;
+    EZAudioNodeInfo iPodTimeNodeInfo;
     
     // audio graph
     AUGraph graph;
@@ -249,6 +250,17 @@ OSStatus EZOutputGraphRenderCallback(void                       *inRefCon,
                                                  &outputDescription,
                                                  &self.info->outputNodeInfo.node)
                         operation:"Failed to add output node to audio graph"];
+    //
+    // Add ipod time node
+    //
+    AudioComponentDescription ipodTimeDescription;
+    ipodTimeDescription.componentType = kAudioUnitType_FormatConverter;
+    ipodTimeDescription.componentSubType = kAudioUnitSubType_AUiPodTimeOther;
+    ipodTimeDescription.componentManufacturer = kAudioUnitManufacturer_Apple;
+    [EZAudioUtilities checkResult:AUGraphAddNode(self.info->graph,
+                                                 &ipodTimeDescription,
+                                                 &self.info->iPodTimeNodeInfo.node)
+                        operation:"Failed to add ipod time node to audio graph"];
     
     //
     // Open the graph
@@ -261,12 +273,22 @@ OSStatus EZOutputGraphRenderCallback(void                       *inRefCon,
     //
     OSStatus status = [self connectOutputOfSourceNode:self.info->converterNodeInfo.node
                                   sourceNodeOutputBus:0
-                                    toDestinationNode:self.info->mixerNodeInfo.node
+                                    toDestinationNode:self.info->iPodTimeNodeInfo.node
                               destinationNodeInputBus:0
                                               inGraph:self.info->graph];
     [EZAudioUtilities checkResult:status
                         operation:"Failed to connect output of source node to destination node in graph"];
     
+    //
+    // Connect ipodtime to mixer
+    //
+    [EZAudioUtilities checkResult:AUGraphConnectNodeInput(self.info->graph,
+                                                          self.info->iPodTimeNodeInfo.node,
+                                                          0,
+                                                          self.info->mixerNodeInfo.node,
+                                                          0)
+                        operation:"Failed to connect mixer node to output node"];
+
     //
     // Connect mixer to output
     //
@@ -295,6 +317,11 @@ OSStatus EZOutputGraphRenderCallback(void                       *inRefCon,
                                                   &outputDescription,
                                                   &self.info->outputNodeInfo.audioUnit)
                         operation:"Failed to get output audio unit"];
+    [EZAudioUtilities checkResult:AUGraphNodeInfo(self.info->graph,
+                                                  self.info->iPodTimeNodeInfo.node,
+                                                  &ipodTimeDescription,
+                                                  &self.info->iPodTimeNodeInfo.audioUnit)
+                        operation:"Failed to get ipod time audio unit"];
     
     //
     // Add a node input callback for the converter node
@@ -455,6 +482,20 @@ OSStatus EZOutputGraphRenderCallback(void                       *inRefCon,
 }
 
 //------------------------------------------------------------------------------
+
+- (float)playbackrate
+{
+    AudioUnitParameterValue playback;
+    [EZAudioUtilities checkResult:AudioUnitGetParameter(self.info->iPodTimeNodeInfo.audioUnit,
+                                                        0,
+                                                        kAudioUnitScope_Global,
+                                                        0,
+                                                        &playback)
+                        operation:"Failed to get playbackrate from ipodtime unit"];
+    return playback;
+}
+
+//------------------------------------------------------------------------------
 #pragma mark - Setters
 //------------------------------------------------------------------------------
 
@@ -601,6 +642,17 @@ OSStatus EZOutputGraphRenderCallback(void                       *inRefCon,
                         operation:"Failed to set volume on mixer unit"];
 }
 
+- (void)setPlaybackrate:(float)playbackrate
+{
+
+    [EZAudioUtilities checkResult:AudioUnitSetParameter(self.info->iPodTimeNodeInfo.audioUnit,
+                                                        0,
+                                                        kAudioUnitScope_Global,
+                                                        0,
+                                                        playbackrate,
+                                                        0)
+                        operation:"Failed to set playback rate on ipod time unit"];
+}
 //------------------------------------------------------------------------------
 #pragma mark - Core Audio Properties
 //------------------------------------------------------------------------------

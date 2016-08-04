@@ -406,6 +406,12 @@ reachedEndOfAudioFile:(EZAudioFile *)audioFile;
 @property (nonatomic, assign) float volume;
 
 //------------------------------------------------------------------------------
+
+/**
+ Provides the current playback rate from the audio player's internal `output` component.
+ */
+@property (nonatomic, assign) float playbackrate;
+//------------------------------------------------------------------------------
 #pragma mark - Actions
 //------------------------------------------------------------------------------
 
